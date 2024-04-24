@@ -1,10 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import authRoute from "./routes/auth.js";
-import roomsRoute from "./routes/rooms.js";
-import hotelsRoute from "./routes/hotels.js";
-import usersRoute from "./routes/users.js";
+import authRouter from "./routes/auth.js";
+import roomsRouter from "./routes/rooms.js";
+import hotelsRouter from "./routes/hotels.js";
+import usersRouter from "./routes/users.js";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 
 const app = express();  
 dotenv.config();
@@ -22,14 +24,27 @@ mongoose.connection.on("disconnected", ()=>{
 })
 
 //middlewares
+app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
 
-app.use("/api/auth", authRoute);
-app.use("/api/users", usersRoute);
-app.use("/api/hotels", hotelsRoute);
-app.use("/api/rooms", roomsRoute);
+app.use("/api/auth", authRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/hotels", hotelsRouter);
+app.use("/api/rooms", roomsRouter);
 
-app.listen(8800, () =>{
+app.use((err,req,res,next) =>{
+    const errorStatus = err.status || 500
+    const errorMessage = err.message || "Something went wrong"
+    return res.status(errorStatus).json({
+        success: false,
+        status: errorStatus,
+        message: errorMessage,
+        stack: err.stack,
+    })
+})
+
+app.listen(3300, () =>{
     connect()
     console.log("Connected to backend!")
 });
